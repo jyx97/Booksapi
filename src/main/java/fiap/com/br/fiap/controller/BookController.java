@@ -1,77 +1,75 @@
 package fiap.com.br.fiap.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import fiap.com.br.fiap.model.Book;
-import fiap.com.br.fiap.model.LivrosEnum;
+import fiap.com.br.fiap.model.BooksEnum;
+import fiap.com.br.fiap.repository.BookRepository;
+import jakarta.validation.Valid;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/books")
 public class BookController {
 
-    private List<Book> repository;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    // Inicialização do repositório com os livros do enum
-    public BookController() {
-        this.repository = new ArrayList<>();
-        // Preencher a lista de livros com os livros do enum
-        Arrays.stream(LivrosEnum.values())
-            .forEach(livroEnum -> repository.add(livroEnum.getLivro()));
-    }
+    @Autowired
+    private BookRepository repository;
 
-    // Listar todos os livros
     @GetMapping
     public List<Book> index() {
-        return repository;
+        return repository.findAll();
     }
 
-    // Adicionar um novo livro
     @PostMapping
-    @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseEntity<Book> create(@RequestBody Book book) {
-        System.out.println("Cadastrando Livro: " + book.getNome());
-        repository.add(book);
-        return ResponseEntity.status(201).body(book);
+    public ResponseEntity<Book> create(@RequestBody @Valid Book book) {
+        log.info("Cadastrando livro: {}", book.getTitle());
+        repository.save(book);
+        return ResponseEntity.status(HttpStatus.CREATED).body(book);
     }
 
-    // Buscar livro por id no repositório
-    @GetMapping("/{id}")
-    public ResponseEntity<Book> get(@PathVariable Long id) {
-        System.out.println("Buscando livro " + id);
-        var book = repository.stream()
-            .filter(c -> c.getId().equals(id))
-            .findFirst();
-        if (book.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(book.get());
+    @GetMapping("{id}")
+    public Book get(@PathVariable Long id) {
+        log.info("Buscando livro {}", id);
+        return getBook(id);
     }
 
-    // Buscar livro por id utilizando o enum
+    @DeleteMapping("{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void destroy(@PathVariable Long id) {
+        log.info("Removendo livro {}", id);
+        repository.delete(getBook(id));
+    }
+
+    @PutMapping("{id}")
+    public Book update(@PathVariable Long id, @RequestBody @Valid Book book) {
+        log.info("Atualizando livro {} para {}", id, book);
+        book.setId(id);
+        return repository.save(book);
+    }
+
     @GetMapping("/listed/{id}")
-    public ResponseEntity<Book> buscarLivroPorEnumId(@PathVariable Long id) {
-        var livroEnum = Arrays.stream(LivrosEnum.values())
-            .filter(livro -> livro.getLivro().getId().equals(id))
+    public ResponseEntity<Book> getBookFromEnum(@PathVariable Long id) {
+        var bookEnum = List.of(BooksEnum.values()).stream() // Corrigido o nome da variável
+            .map(BooksEnum::getBook) // Obtendo o objeto Book do enum
+            .filter(book -> book.getId().equals(id))
             .findFirst();
+    
+        return BooksEnum
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
-        if (livroEnum.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(livroEnum.get().getLivro());
+    private Book getBook(Long id) {
+        return repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
     }
 }
