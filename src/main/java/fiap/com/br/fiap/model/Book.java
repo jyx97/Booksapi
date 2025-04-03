@@ -9,10 +9,15 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 
 @Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,8 +37,20 @@ public class Book {
     @NotBlank(message = "Gênero é obrigatório")
     private String genre;
 
-    @Size(max = 5000, message = "A sinopse deve ter no máximo 1000 caracteres")
+    @Size(max = 5000, message = "A sinopse deve ter no máximo 5000 caracteres")
     private String synopsis;
 
     private String picture;
+
+    // Construtor sem ID (para a inserção no banco)
+    public Book(String title, LocalDate publicationDate, String author, String genre, String synopsis, String picture) {
+        this.title = title;
+        this.publicationDate = publicationDate;
+        this.author = author;
+        this.genre = genre;
+        this.synopsis = synopsis;
+        this.picture = picture;
+    }
+
+
 }

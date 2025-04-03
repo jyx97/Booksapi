@@ -7,11 +7,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import fiap.com.br.fiap.model.Book;
-import fiap.com.br.fiap.model.BooksEnum;
 import fiap.com.br.fiap.repository.BookRepository;
 import jakarta.validation.Valid;
 
@@ -25,51 +29,37 @@ public class BookController {
     private BookRepository repository;
 
     @GetMapping
-    public List<Book> index() {
+    public List<Book> listarLivros() {
         return repository.findAll();
     }
 
     @PostMapping
-    public ResponseEntity<Book> create(@RequestBody @Valid Book book) {
-        log.info("Cadastrando livro: {}", book.getTitle());
+    public ResponseEntity<Book> cadastrarLivro(@RequestBody @Valid Book book) {
+        logInfo("Cadastrando livro: " + book.getTitle());
         repository.save(book);
-        return ResponseEntity.status(HttpStatus.CREATED).body(book);
+        return criarResposta(book, HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")
-    public Book get(@PathVariable Long id) {
-        log.info("Buscando livro {}", id);
-        return getBook(id);
+    public ResponseEntity<Book> buscarLivro(@PathVariable Long id) {
+        logInfo("Buscando livro " + id);
+        return criarResposta(buscarLivroNoRepositorio(id), HttpStatus.OK);
     }
 
-    @DeleteMapping("{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void destroy(@PathVariable Long id) {
-        log.info("Removendo livro {}", id);
-        repository.delete(getBook(id));
-    }
 
-    @PutMapping("{id}")
-    public Book update(@PathVariable Long id, @RequestBody @Valid Book book) {
-        log.info("Atualizando livro {} para {}", id, book);
-        book.setId(id);
-        return repository.save(book);
-    }
-
-    @GetMapping("/listed/{id}")
-    public ResponseEntity<Book> getBookFromEnum(@PathVariable Long id) {
-        var bookEnum = List.of(BooksEnum.values()).stream() // Corrigido o nome da variável
-            .map(BooksEnum::getBook) // Obtendo o objeto Book do enum
-            .filter(book -> book.getId().equals(id))
-            .findFirst();
-    
-        return BooksEnum
-            .map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    private Book getBook(Long id) {
+    //Busca um livro no repositório pelo ID
+    private Book buscarLivroNoRepositorio(Long id) {
         return repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
+    }
+
+    //resposta
+    private ResponseEntity<Book> criarResposta(Book livro, HttpStatus status) {
+        return ResponseEntity.status(status).body(livro);
+    }
+
+    // metodo pro log
+    private void logInfo(String mensagem) {
+        log.info(mensagem);
     }
 }
