@@ -7,11 +7,16 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Profile {
 
     @Id
@@ -21,6 +26,10 @@ public class Profile {
     @NotBlank(message = "Campo obrigatório")
     @Size(min = 5, max = 255)
     private String name;
+
+    @NotBlank(message = "Campo obrigatório")
+    @Size(max = 255)
+    private String username;
 
     @NotBlank(message = "Campo obrigatório")
     @Email(message = "E-mail inválido")
