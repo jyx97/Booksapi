@@ -13,6 +13,7 @@ import jakarta.annotation.PostConstruct;
 //ver repositório do professor e passar os daos para o DataSeeder
 @Component
 public class DataSeeder {
+
     @Autowired
     private BookRepository repository;
 
@@ -34,7 +35,7 @@ public class DataSeeder {
         .synopsis("Macabéa, uma jovem nordestina órfã e ingênua, vive uma existência simples no Rio de Janeiro.")
         .picture("https://m.media-amazon.com/images/I/61TaHURu27L._AC_UF894,1000_QL80_.jpg")
         .build(),
-        
+
         Book.builder().title("As Vantagens de Ser Invisível")
         .publicationDate(LocalDate.of(1999, 2, 1))
         .author("Stephen Chbosky")
@@ -42,7 +43,7 @@ public class DataSeeder {
         .synopsis("Charlie, um adolescente introspectivo, escreve cartas anônimas para lidar com suas angústias.")
         .picture("https://m.media-amazon.com/images/I/61WvSMKRBfL._AC_UF1000,1000_QL80_.jpg")
         .build(),
-        
+
         Book.builder().title("Os Dois Morrem no Final")
         .publicationDate(LocalDate.of(2017, 9, 5))
         .author("Adam Silvera")
@@ -50,7 +51,7 @@ public class DataSeeder {
         .synopsis("Mateo e Rufus recebem uma ligação que informa que têm apenas 24 horas de vida.")
         .picture("https://m.media-amazon.com/images/I/61QhNRjycfL._AC_UF1000,1000_QL80_.jpg")
         .build(),
-        
+
         Book.builder().title("Admirável Mundo Novo")
         .publicationDate(LocalDate.of(1932, 1, 1))
         .author("Aldous Huxley")

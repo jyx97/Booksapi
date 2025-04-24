@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,9 +17,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 import fiap.com.br.fiap.model.Book;
 import fiap.com.br.fiap.repository.BookRepository;
+import fiap.com.br.fiap.specification.BookSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -39,17 +43,6 @@ public class BookController {
         return repository.findAll();
     }
 
-    @PostMapping
-    @CacheEvict(value = "books", allEntries = true)
-    @Operation(summary = "Cadastrar um novo livro", responses = {
-        @ApiResponse(responseCode = "201", description = "Livro criado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos")
-    })
-    public ResponseEntity<Book> cadastrarLivro(@RequestBody @Valid Book book) {
-        logInfo("Cadastrando livro: " + book.getTitle());
-        repository.save(book);
-        return criarResposta(book, HttpStatus.CREATED);
-    }
 
     @GetMapping("{id}")
     public ResponseEntity<Book> buscarLivro(@PathVariable Long id) {
@@ -71,5 +64,17 @@ public class BookController {
     // metodo pro log
     private void logInfo(String mensagem) {
         log.info(mensagem);
+    }
+    public record BookFilter(String title, String author, String genre) {}
+
+
+    @GetMapping
+    public Page<Book> index(BookFilter filters,
+            @PageableDefault(size = 10, sort = "publicationDate", direction = Direction.DESC) Pageable pageable) {
+
+        var specification = BookSpecification.withFilters(
+                filters.title(), filters.author(), filters.genre());
+
+        return repository.findAll(specification, pageable);
     }
 }
