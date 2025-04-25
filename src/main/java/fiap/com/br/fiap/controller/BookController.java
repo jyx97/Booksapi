@@ -68,7 +68,7 @@ public class BookController {
     public record BookFilter(String title, String author, String genre) {}
 
 
-    @GetMapping
+    @GetMapping("/search")
     public Page<Book> index(BookFilter filters,
             @PageableDefault(size = 10, sort = "publicationDate", direction = Direction.DESC) Pageable pageable) {
 

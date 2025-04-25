@@ -17,10 +17,13 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Book {
+
+    public static Object builder() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,6 +48,8 @@ public class Book {
 
     private String picture;
 
+
+    @Builder
     // Construtor sem ID (para a inserção no banco)
     public Book(String title, LocalDate publicationDate, String author, String genre, String synopsis, String picture) {
         this.title = title;
